@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=org.coderus.powermenu
-Exec=/usr/bin/powermenu-daemon

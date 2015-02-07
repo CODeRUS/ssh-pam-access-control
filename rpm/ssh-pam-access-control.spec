@@ -55,23 +55,50 @@ rm -rf %{buildroot}
 %qmake5_install
 
 # >> install post
+mkdir -p %{buildroot}/usr/lib/systemd/user/post-user-session.target.wants
+ln -s ../ssh-pam-access-control.service %{buildroot}/usr/lib/systemd/user/post-user-session.target.wants/ssh-pam-access-control.service
 # << install post
 
 %post
 # >> post
 if ! grep "ssh-pam-access-control" /etc/pam.d/sshd
 then
-#  echo "session optional pam_exec.so stdout seteuid /usr/bin/ssh-pam-access-control" >> /etc/pam.d/sshd
+  echo "session required pam_exec.so quiet stdout /usr/bin/ssh-pam-access-control" >> /etc/pam.d/sshd
 fi
+systemctl-user restart ngfd.service
+systemctl-user restart ssh-pam-access-control.service
 # << post
+
+# >> pre
+%pre
+systemctl-user stop ssh-pam-access-control.service
+if /sbin/pidof ssh-pam-access-control > /dev/null; then
+killall ssh-pam-access-control
+fi
+if /sbin/pidof ssh-pam-access-daemon > /dev/null; then
+killall ssh-pam-access-daemon
+fi
+# << pre
 
 %preun
 # >> preun
-#sed -i "/ssh-pam-access-control/d" /etc/pam.d/sshd
+sed -i "/ssh-pam-access-control/d" /etc/pam.d/sshd
+systemctl-user stop ssh-pam-access-control.service
+if /sbin/pidof ssh-pam-access-control > /dev/null; then
+killall ssh-pam-access-control
+fi
+if /sbin/pidof ssh-pam-access-daemon > /dev/null; then
+killall ssh-pam-access-daemon
+fi
 # << preun
 
 %files
 %defattr(-,root,root,-)
+/usr/lib/systemd/user/*.service
+/usr/lib/systemd/user/post-user-session.target.wants/*.service
+%config /etc/profiled/*.ini
+%config %{_datadir}/ngfd/events.d/*.ini
+%config %{_datadir}/lipstick/notificationcategories/*.conf
 %{_bindir}/
 %{_datadir}/ssh-pam-access-daemon
 # >> files

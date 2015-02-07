@@ -1,13 +1,12 @@
-import QtQuick 2.0
+import QtQuick 2.1
 import Sailfish.Silica 1.0
-
 
 Page {
     id: page
 
     PageHeader {
         id: header
-        anchors.top: page
+        anchors.top: page.top
         title: qsTr("Incoming SSH connection")
     }
 
@@ -15,7 +14,7 @@ Page {
         anchors {
             fill: parent
             topMargin: header.height
-            bottomMargin: buttonsRow.height
+            bottomMargin: buttonsRow.height + messageField.height
         }
 
         contentHeight: column.height
@@ -34,15 +33,29 @@ Page {
             Label {
                 width: parent.width
                 wrapMode: Text.Wrap
-                text: "Remote host: " + pamRHost
+                text: pamEnv.pamRUser.toString().length > 0 ? "Remote: %1@%2".arg(pamEnv.pamRUser).arg(pamEnv.pamRHost)
+                                                            : "Remote: %1".arg(pamEnv.pamRHost)
             }
 
             Label {
                 width: parent.width
                 wrapMode: Text.Wrap
-                text: "Remote user: " + pamUser
+                text: "Local user: %1".arg(pamEnv.pamUser)
+            }
+
+            Label {
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: "Connection: %1".arg(pamEnv.pamTty)
             }
         }
+    }
+
+    TextField {
+        id: messageField
+        anchors.bottom: buttonsRow.top
+        width: parent.width
+        placeholderText: "Optional message"
     }
 
     Item {
@@ -55,14 +68,14 @@ Page {
             text: "Allow"
             anchors.right: parent.horizontalCenter
             width: parent.width / 2
-            onClicked: apphelper.exit(0)
+            onClicked: appWindow.sendResult(0, messageField.text)
         }
 
         Button {
             text: "Deny"
             anchors.left: parent.horizontalCenter
             width: parent.width / 2
-            onClicked: apphelper.exit(1)
+            onClicked: appWindow.sendResult(1, messageField.text)
         }
     }
 }

@@ -1,0 +1,11 @@
+[Unit]
+Description=SSH Pam access control
+Requires=lipstick.service
+After=lipstick.service
+
+[Service]
+ExecStart=/usr/bin/ssh-pam-access-daemon
+Restart=always
+
+[Install]
+WantedBy=post-user-session.target

@@ -8,12 +8,10 @@
 DBusMain::DBusMain(QObject *parent) :
     QObject(parent)
 {
-    qDebug() << "DBusMain constructor";
 }
 
 DBusMain::~DBusMain()
 {
-    qDebug() << "DBusMain destructor";
 }
 
 void DBusMain::start()
@@ -25,22 +23,17 @@ void DBusMain::start()
 
     while (!success) {
         serviceName = baseService.arg(serviceIndex);
-        qDebug() << "trying" << serviceName;
         success = QDBusConnection::sessionBus().registerService(serviceName);
         if (!success) {
-            qDebug() << "error:" << QDBusConnection::sessionBus().lastError().message();
             serviceIndex++;
             if (serviceIndex > 100) {
                 QCoreApplication::exit(0);
                 return;
             }
         }
-        else {
-            qDebug() << "succcess!";
-        }
     }
 
-    QScopedPointer<Adaptor> adaptor(new Adaptor(serviceName, this));
+    Adaptor *adaptor = new Adaptor(serviceName, this);
 
     QDBusConnection::sessionBus().registerObject("/", this);
 
