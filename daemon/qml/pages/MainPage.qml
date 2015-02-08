@@ -68,14 +68,14 @@ Page {
             text: "Allow"
             anchors.right: parent.horizontalCenter
             width: parent.width / 2
-            onClicked: appWindow.sendResult(0, messageField.text)
+            onClicked: appWindow.accessResult(0, messageField.text)
         }
 
         Button {
             text: "Deny"
             anchors.left: parent.horizontalCenter
             width: parent.width / 2
-            onClicked: appWindow.sendResult(1, messageField.text)
+            onClicked: appWindow.accessResult(1, messageField.text)
         }
     }
 }

@@ -5,14 +5,9 @@ import "pages"
 ApplicationWindow
 {
     id: appWindow
-    initialPage: Component { FirstPage { } }
-    cover: undefined
-    property bool done: false
+    initialPage: Component { MainPage { } }
+    cover: Qt.resolvedUrl("cover/CoverPage.qml")
     signal accessResult(int code, string message)
-    function sendResult(code, message) {
-        done = true
-        accessResult(code, message)
-    }
 }
 
 

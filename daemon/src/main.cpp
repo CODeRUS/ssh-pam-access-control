@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-    QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
+    QScopedPointer<QGuiApplication> app(new QGuiApplication(argc, argv));
     app->setQuitOnLastWindowClosed(false);
     QScopedPointer<DBusWatcher> dbus(new DBusWatcher(app.data()));
 

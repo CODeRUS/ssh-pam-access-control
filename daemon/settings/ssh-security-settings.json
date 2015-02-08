@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-system",
+    "entries": [
+        {
+            "path": "system_settings/security/ssh-security-settings",
+            "type": "page",
+            "title": "SSH Access confirmation",
+            "translation_id": "ssh-security-settings-title",
+            "icon": "/usr/share/ssh-pam-access-daemon/icons/settings.png",
+            "order": 5000,
+            "params": {
+                "source": "/usr/share/ssh-pam-access-daemon/qml/settings/main.qml"
+            }
+        }
+    ]
+}

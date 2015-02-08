@@ -5,6 +5,9 @@
 #include <QQuickView>
 
 #include <mlite5/MGConfItem>
+#include <mlite5/MNotification>
+
+#include "envstore.h"
 
 class DBusWatcher : public QObject
 {
@@ -30,9 +33,12 @@ private:
     void showDialog();
     void notifyConnection(const QVariantMap &connection, bool pending = true);
 
+    EnvStore *envStore;
     QVariantList pendingConnections;
     QQuickView *view;
-    QScopedPointer<MGConfItem> dconf;
+    QScopedPointer<MGConfItem> autoAllow;
+    QScopedPointer<MGConfItem> allowedIp;
+    QHash<QString, MNotification*> pendingNotifications;
 };
 
 #endif // DBUSWATCHER_H

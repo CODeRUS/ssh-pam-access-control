@@ -13,7 +13,7 @@ Name:       ssh-pam-access-control
 %{!?qtc_make:%define qtc_make make}
 %{?qtc_builddir:%define _builddir %qtc_builddir}
 Summary:    SSH Pam access control
-Version:    0.1.0
+Version:    0.2.0
 Release:    1
 Group:      Qt/Qt
 License:    LICENSE
@@ -100,5 +100,6 @@ fi
 %config %{_datadir}/lipstick/notificationcategories/*.conf
 %{_bindir}/
 %{_datadir}/ssh-pam-access-daemon
+%{_datadir}/jolla-settings/entries
 # >> files
 # << files

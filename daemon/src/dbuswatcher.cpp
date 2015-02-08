@@ -9,8 +9,6 @@
 
 #include <QDebug>
 
-#include <mlite5/MNotification>
-
 #include "sailfishapp.h"
 
 DBusWatcher::DBusWatcher(QObject *parent) :
@@ -18,10 +16,15 @@ DBusWatcher::DBusWatcher(QObject *parent) :
 {
     qDebug() << "DBusWatcher constructor";
 
-    dconf.reset(new MGConfItem("/apps/ssh-pam-access-control/allow", this));
+    autoAllow.reset(new MGConfItem("/apps/ssh-pam-access-control/allowAuto", this));
+    allowedIp.reset(new MGConfItem("/apps/ssh-pam-access-control/allowedIp", this));
+
+    view = NULL;
 
     QDBusConnection::sessionBus().connect("", "/", "org.coderus.pam.sshd", "requestAccess", this,
                                           SLOT(onRequestAccess(QString,QString,QString,QString,QString,QString,QString)));
+
+    envStore = new EnvStore(this);
 }
 
 DBusWatcher::~DBusWatcher()
@@ -33,7 +36,13 @@ DBusWatcher::~DBusWatcher()
 
     for (int i = 0; i < pendingConnections.length(); i++) {
         QVariantMap connection = pendingConnections.at(i).toMap();
-        sendResult(0, connection["service"].toString(), "Destruction");
+        QString service = connection["service"].toString();
+        sendResult(0, service, "Destruction");
+
+        MNotification *notification = pendingNotifications.take(service);
+        if (notification->isPublished()) {
+            notification->remove();
+        }
     }
 }
 
@@ -58,9 +67,12 @@ void DBusWatcher::onRequestAccess(const QString &pamRUser, const QString &pamRHo
     connection["pamTty"] = pamTty;
     connection["service"] = service;
 
-    notifyConnection(connection, !dconf->value(false).toBool());
+    QStringList allowed = allowedIp->value().toStringList();
+    bool allow = allowed.contains(pamRHost) || autoAllow->value(false).toBool();
 
-    if (!dconf->value(false).toBool()) {
+    notifyConnection(connection, !allow);
+
+    if (!allow) {
         pendingConnections.append(connection);
 
         if (pendingConnections.length() == 1) {
@@ -78,12 +90,21 @@ void DBusWatcher::processResult(int code, const QString &message)
         QVariant connVar = pendingConnections.takeFirst();
         QVariantMap connection = connVar.toMap();
 
-        sendResult(code, connection["service"].toString(), message);
+        QString service = connection["service"].toString();
+
+        sendResult(code, service, message);
+
+        if (pendingNotifications.contains(service)) {
+            MNotification *notification = pendingNotifications.take(service);
+            if (notification->isPublished()) {
+                notification->remove();
+            }
+            delete notification;
+        }
 
         if (view) {
-            qDebug() << "destroy old view";
-            view->destroy();
-            view = NULL;
+            view->hide();
+            view->close();
         }
 
         if (pendingConnections.length() > 0) {
@@ -105,14 +126,7 @@ void DBusWatcher::onClosing(QQuickCloseEvent*)
 {
     qDebug() << "onClosing";
 
-    if (view) {
-        qDebug() << "destroy";
-
-        view->destroy();
-        view = NULL;
-
-        processResult(1);
-    }
+    processResult(1);
 }
 
 void DBusWatcher::viewDestroyed()
@@ -125,28 +139,37 @@ void DBusWatcher::viewDestroyed()
 void DBusWatcher::showDialog()
 {
     if (pendingConnections.length() > 0) {
-        qDebug() << "showDialog";
-        view = SailfishApp::createView();
-        //view = new QQuickView();
-        qDebug() << "connect events";
-        QObject::connect(view, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(onClosing(QQuickCloseEvent*)));
-        QObject::connect(view, SIGNAL(destroyed()), this, SLOT(viewDestroyed()));
-        qDebug() << "set context";
-        view->rootContext()->setContextProperty("pamEnv", pendingConnections.at(0));
-        qDebug() << "set source";
-        view->setSource(SailfishApp::pathTo("qml/main.qml"));
-        QObject *item = view->rootObject();
-        QObject::connect(item, SIGNAL(accessResult(int, QString)), this, SLOT(processResult(int, QString)));
-        qDebug() << "show";
+        envStore->fromConnection(pendingConnections.at(0).toMap());
+        if (!view) {
+            qDebug() << "create dialog";
+            view = SailfishApp::createView();
+            qDebug() << "connect events";
+            QObject::connect(view, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(onClosing(QQuickCloseEvent*)));
+            QObject::connect(view, SIGNAL(destroyed()), this, SLOT(viewDestroyed()));
+            qDebug() << "set context";
+            view->rootContext()->setContextProperty("pamEnv", envStore);
+            qDebug() << "set source";
+            view->setSource(SailfishApp::pathTo("qml/main.qml"));
+            QObject *item = view->rootObject();
+            QObject::connect(item, SIGNAL(accessResult(int, QString)), this, SLOT(processResult(int, QString)));
+        }
+        else {
+            qDebug() << "create view";
+            view->create();
+        }
+        qDebug() << "show dialog";
         view->show();
     }
 }
 
 void DBusWatcher::notifyConnection(const QVariantMap &connection, bool pending)
 {
-    MNotification notification(QString("org.coderus.pam.sshd.%1").arg(pending ? "pending" : "notify"));
-    notification.setSummary(QString("Incoming: %1").arg(connection["pamRHost"].toString()));
-    notification.setBody(QString("Requested login: %1").arg(connection["pamUser"].toString()));
-    notification.setImage("/usr/share/ssh-pam-access-daemon/icons/notification.png");
-    notification.publish();
+    MNotification *notification = new MNotification(QString("org.coderus.pam.sshd.%1").arg(pending ? "pending" : "notify"));
+    notification->setSummary(QString("Incoming: %1").arg(connection["pamRHost"].toString()));
+    notification->setBody(QString("Requested login: %1").arg(connection["pamUser"].toString()));
+    notification->setImage("/usr/share/ssh-pam-access-daemon/icons/notification.png");
+    notification->publish();
+    if (pending) {
+        pendingNotifications[connection["service"].toString()] = notification;
+    }
 }
