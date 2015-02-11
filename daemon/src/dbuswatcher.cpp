@@ -68,19 +68,23 @@ void DBusWatcher::onRequestAccess(const QString &pamRUser, const QString &pamRHo
     connection["service"] = service;
 
     QStringList allowed = allowedIp->value().toStringList();
-    bool allow = allowed.contains(pamRHost) || autoAllow->value(false).toBool();
-
-    notifyConnection(connection, !allow);
-
-    if (!allow) {
-        pendingConnections.append(connection);
-
-        if (pendingConnections.length() == 1) {
-            showDialog();
-        }
+    if (allowed.contains(pamRHost)) {
+        sendResult(0, service);
     }
     else {
-        sendResult(0, service);
+        bool allow = autoAllow->value(false).toBool();
+        notifyConnection(connection, !allow);
+
+        if (allow) {
+            sendResult(0, service);
+        }
+        else {
+            pendingConnections.append(connection);
+
+            if (pendingConnections.length() == 1) {
+                showDialog();
+            }
+        }
     }
 }
 

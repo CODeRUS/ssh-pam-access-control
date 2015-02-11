@@ -5,7 +5,7 @@ import "pages"
 ApplicationWindow
 {
     id: appWindow
-    initialPage: Component { MainPage { } }
+    initialPage: Component { EmptyPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     signal accessResult(int code, string message)
 }

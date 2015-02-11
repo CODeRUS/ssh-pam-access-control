@@ -13,7 +13,7 @@ Page {
         id: dconf
         path: "/apps/ssh-pam-access-control"
         property bool allowAuto: false
-        property bool allowedIp: []
+        property var allowedIp: []
     }
 
     DBusInterface {
@@ -75,6 +75,7 @@ Page {
         interactive: contentHeight > height
 
         Column {
+            id: content
             width: parent.width
             spacing: Theme.paddingLarge
 
@@ -152,6 +153,84 @@ Page {
                                                    ])
                             }
                         })
+                }
+            }
+
+            SectionHeader {
+                text: "Whitelist ip"
+            }
+
+            Label {
+                visible: dconf.allowedIp.length == 0
+                x: Theme.paddingLarge
+                text: "Empty"
+            }
+
+            Repeater {
+                width: parent.width
+                model: dconf.allowedIp
+                delegate: whitelistDelegate
+            }
+
+            TextField {
+                id: addField
+                width: parent.width
+                visible: false
+                focus: visible
+                placeholderText: "192.168.2.14"
+                validator: RegExpValidator { regExp:/^(([01]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))\.){3}([01]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))$/ }
+                inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhPreferNumbers
+                EnterKey.enabled: acceptableInput
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                EnterKey.onClicked: {
+                    visible = false
+                    var val = dconf.allowedIp
+                    if (val.indexOf(addField.text) == -1) {
+                        val.splice(0, 0, addField.text)
+                        dconf.allowedIp = val
+                    }
+                }
+            }
+
+            Button {
+                visible: !addField.focus
+                text: "Add"
+                anchors.horizontalCenter: parent.horizontalCenter
+                onClicked: {
+                    addField.visible = true
+                }
+            }
+        }
+    }
+
+    Component {
+        id: whitelistDelegate
+        Item {
+            width: parent.width
+            height: Theme.itemSizeSmall
+
+            Label {
+                anchors {
+                    left: parent.left
+                    right: delBtn.left
+                    margins: Theme.paddingLarge
+                    verticalCenter: parent.verticalCenter
+                }
+                text: modelData
+            }
+
+            IconButton {
+                id: delBtn
+                anchors {
+                    right: parent.right
+                    rightMargin: Theme.paddingLarge
+                    verticalCenter: parent.verticalCenter
+                }
+                icon.source: "image://theme/icon-m-remove"
+                onClicked: {
+                    var val = dconf.allowedIp
+                    val.splice(val.indexOf(modelData), 1)
+                    dconf.allowedIp = val
                 }
             }
         }

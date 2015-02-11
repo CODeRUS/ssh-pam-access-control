@@ -49,4 +49,5 @@ OTHER_FILES += \
     qml/main.qml \
     qml/settings/main.qml \
     qml/pages/MainPage.qml \
-    qml/cover/CoverPage.qml
+    qml/cover/CoverPage.qml \
+    qml/pages/EmptyPage.qml
