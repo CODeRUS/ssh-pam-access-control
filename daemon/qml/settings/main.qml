@@ -13,7 +13,7 @@ Page {
         id: dconf
         path: "/apps/ssh-pam-access-control"
         property bool allowAuto: false
-        property var allowedIp: []
+        property var allowedHosts: []
     }
 
     DBusInterface {
@@ -161,14 +161,14 @@ Page {
             }
 
             Label {
-                visible: dconf.allowedIp.length == 0
+                visible: dconf.allowedHosts.length == 0
                 x: Theme.paddingLarge
                 text: "Empty"
             }
 
             Repeater {
                 width: parent.width
-                model: dconf.allowedIp
+                model: dconf.allowedHosts
                 delegate: whitelistDelegate
             }
 
@@ -177,17 +177,16 @@ Page {
                 width: parent.width
                 visible: false
                 focus: visible
-                placeholderText: "192.168.2.14"
-                validator: RegExpValidator { regExp:/^(([01]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))\.){3}([01]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))$/ }
-                inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhPreferNumbers
-                EnterKey.enabled: acceptableInput
+                placeholderText: "hostname"
+                inputMethodHints: Qt.ImhNoPredictiveText
+                EnterKey.enabled: text.length > 0
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: {
                     visible = false
-                    var val = dconf.allowedIp
+                    var val = dconf.allowedHosts
                     if (val.indexOf(addField.text) == -1) {
                         val.splice(0, 0, addField.text)
-                        dconf.allowedIp = val
+                        dconf.allowedHosts = val
                     }
                 }
             }
@@ -228,9 +227,9 @@ Page {
                 }
                 icon.source: "image://theme/icon-m-remove"
                 onClicked: {
-                    var val = dconf.allowedIp
+                    var val = dconf.allowedHosts
                     val.splice(val.indexOf(modelData), 1)
-                    dconf.allowedIp = val
+                    dconf.allowedHosts = val
                 }
             }
         }

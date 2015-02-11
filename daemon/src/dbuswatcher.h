@@ -37,7 +37,7 @@ private:
     QVariantList pendingConnections;
     QQuickView *view;
     QScopedPointer<MGConfItem> autoAllow;
-    QScopedPointer<MGConfItem> allowedIp;
+    QScopedPointer<MGConfItem> allowedHosts;
     QHash<QString, MNotification*> pendingNotifications;
 };
 

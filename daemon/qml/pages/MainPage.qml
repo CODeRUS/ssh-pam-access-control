@@ -15,8 +15,8 @@ Dialog {
     }
 
     ConfigurationValue {
-        id: allowedIp
-        key: "/apps/ssh-pam-access-control/allowedIp"
+        id: allowedHosts
+        key: "/apps/ssh-pam-access-control/allowedHosts"
         defaultValue: []
     }
 
@@ -30,10 +30,10 @@ Dialog {
             MenuItem {
                 text: "Add to whitelist"
                 onClicked: {
-                    var val = allowedIp.value
+                    var val = allowedHosts.value
                     if (val.indexOf(pamEnv.pamRHost) == -1) {
                         val.splice(0, 0, pamEnv.pamRHost)
-                        allowedIp.value = val
+                        allowedHosts.value = val
                     }
                     page.accept()
                 }

@@ -17,7 +17,7 @@ DBusWatcher::DBusWatcher(QObject *parent) :
     qDebug() << "DBusWatcher constructor";
 
     autoAllow.reset(new MGConfItem("/apps/ssh-pam-access-control/allowAuto", this));
-    allowedIp.reset(new MGConfItem("/apps/ssh-pam-access-control/allowedIp", this));
+    allowedHosts.reset(new MGConfItem("/apps/ssh-pam-access-control/allowedHosts", this));
 
     view = NULL;
 
@@ -67,7 +67,7 @@ void DBusWatcher::onRequestAccess(const QString &pamRUser, const QString &pamRHo
     connection["pamTty"] = pamTty;
     connection["service"] = service;
 
-    QStringList allowed = allowedIp->value().toStringList();
+    QStringList allowed = allowedHosts->value().toStringList();
     if (allowed.contains(pamRHost)) {
         sendResult(0, service);
     }
