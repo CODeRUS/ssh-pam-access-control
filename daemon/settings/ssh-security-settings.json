@@ -2,7 +2,7 @@
     "translation_catalog": "settings-system",
     "entries": [
         {
-            "path": "system_settings/security/ssh-security-settings",
+            "path": "system_settings/system/ssh-security-settings",
             "type": "page",
             "title": "SSH Access confirmation",
             "translation_id": "ssh-security-settings-title",
