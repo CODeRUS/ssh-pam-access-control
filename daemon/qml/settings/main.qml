@@ -80,7 +80,7 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: "SSH Access confirmation"
+                title: "SSH access confirmation"
             }
 
             TextSwitch {
